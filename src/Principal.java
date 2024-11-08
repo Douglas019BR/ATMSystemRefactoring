@@ -1,13 +1,3 @@
-/**
- * Autores: C.M.F. Rubira, P.A. Guerra e L.P. Tizzei
- * 
- * Introdução à Programação Orientada a Objetos usando Java
- * 
- * Cap. 6 - Sistema de Caixa Automático
- * 
- * última modificação: março de 2014
- */
-
 package sistemaCaixaAutomatico;
 
 public class Principal {
