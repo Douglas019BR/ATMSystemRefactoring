@@ -1,16 +1,3 @@
-/**
- * Autores: C.M.F. Rubira, P.A. Guerra e L.P. Tizzei
- * 
- * Introdução à Programação Orientada a Objetos usando Java
- * 
- * Cap. 6 - Sistema de Caixa Automático
- * 
- * refatorado por Douglas Sermarini e Vitor Gomes
- * última modificação: novembro de 2024
- */
-
-
-
 package sistemaCaixaAutomatico;
 
 import java.io.BufferedReader;
@@ -20,9 +7,6 @@ import java.io.Reader;
 import java.io.StreamTokenizer;
 
 public class TrmCxAut {
-
-
-
 	//Atributos
 	private ControladorCaixa controladorCaixa; // associação entre terminal e controladorcaixa
 
@@ -73,8 +57,8 @@ public class TrmCxAut {
 		do {
 			if (modoAtual==Caixa.MODO_CLIENTE) {  // modo cliente 
 				op=getInt
-						("opcao: 1 = consulta saldo, 2 = saque, 8 = modo supervisor, 9 = sai");
-				if (op!=1 && op!=2 && op!=8 && op!=9) op=0;
+						("opcao: 1 = consulta saldo, 2 = saque, opcao: 7 = transferencia entre contas, 8 = modo supervisor, 9 = sai");
+				if (op!=1 && op!=2 && op!=7 && op!=8 && op!=9) op=0;
 			}else {				// modo supervisor 
 				op=getInt
 						("opcao: 3 = recarrega, 8 = modo cliente, 9 = sai");
@@ -110,10 +94,16 @@ public class TrmCxAut {
 				controladorCaixa.recarregar(getInt("senha")); 
 				break;
 
+			case 7:
+				boolean transferenciaEfetuada = controladorCaixa.efetuarTransferencia(getInt("número da conta"), getInt("senha"),getInt("número da conta de destino"), getInt("valor"));
+				if (!transferenciaEfetuada) { System.out.println("Trânsferencia não realizada!");}
+				break;
+
 			case 8:
 				controladorCaixa.alternarModo(getInt("senha do caixa")); 
 				break;
 			}
+
 			op=getOp();
 		}
 	}
