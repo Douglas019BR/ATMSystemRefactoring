@@ -1,13 +1,3 @@
-/**
- * Autores: C.M.F. Rubira, P.A. Guerra e L.P. Tizzei
- * 
- * Introdução à Programação Orientada a Objetos usando Java
- * 
- * Estudo de Caso do Sistema de Caixa Automático
- * 
- * última modificação: março de 2014
- */
-
 package sistemaCaixaAutomatico;
 
 import sistemaCaixaAutomatico.ContaCor;
@@ -60,7 +50,7 @@ public class ControladorCaixa {
 		if (cta==null)  // se número de conta inválido ...
 			return false;  // ... retorna false
 
-		if (cta.debitarValor("Saque Automatico", val, senha)==false) // se saque recusado ...
+		if (!cta.debitarSaque(val, senha)) // se saque recusado ...
 			return false;  // retorna false
 		else{
 			this.caixa.liberarNotas((int)(val/10)); // libera pagamento
@@ -90,4 +80,46 @@ public class ControladorCaixa {
 		return this.caixa.obterModoOperacaoAtual();
 	}
 
+	private boolean transferenciaValida(ContaCor contaCorrenteOrigem, int senhaOrigem, ContaCor contaCorrenteDestino, float valor, float saldoCaixa) {
+		if (saldoCaixa < valor) {
+			System.out.println("Saldo do caixa insuficiente");
+			return false;
+		}
+		if (contaCorrenteOrigem == null){
+			System.out.println("Conta de Origem inválida");
+			return false;
+		}
+		if (contaCorrenteOrigem.obterSaldo(senhaOrigem) < valor){
+			System.out.println("Saldo insuficiente");
+			return false;
+		}
+		if (contaCorrenteDestino == null){
+			System.out.println("Conta de destino inválida");
+			return false;
+		}
+		return true;
+	}
+
+	public boolean efetuarTransferencia(int contaOrigem, int senhaOrigem, int contaDestino, float valor){
+		float saldoCaixa = this.caixa.obterSaldoCaixa();
+		ContaCor contaCorrenteOrigem = dbContas.buscarConta(contaOrigem);
+		ContaCor contaCorrenteDestino = dbContas.buscarConta(contaDestino);
+		if (this.transferenciaValida(contaCorrenteOrigem,senhaOrigem,contaCorrenteDestino,valor,saldoCaixa)){
+			boolean debitou = contaCorrenteOrigem.debitarValor("transferencia para a conta de numero :" + contaDestino,valor,senhaOrigem);
+			if (!debitou) {return false;}
+			boolean creditou = contaCorrenteDestino.creditarValor(contaOrigem,valor);
+			if (creditou) {
+				System.out.println("transferencia para a conta de numero :" + contaDestino+ "no valor de "+valor+ "realizada!");
+				return true;
+			}
+			else {
+				System.out.println("Não foi possivel creditar na conta de destino");
+				contaCorrenteOrigem.creditarValor(contaOrigem,valor);
+			}
+			return false;
+		}
+		else {
+			return false;
+		}
+	}
 }
