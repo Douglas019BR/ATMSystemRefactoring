@@ -16,16 +16,49 @@ public class ContaCor {
 	Nessa versão do código, a opção de crédito não foi implementada */
 	private int ultLanc;		  // topo dos vetores acima
 	private float saldoAtual;     // saldo atual da conta
+	private EstrategiaDeCobranca estrategiaDeCobranca;
 
-	public ContaCor(String titular, float saldoAtual, int numConta, int senha) {
-		this.estado = ContaCor.ATIVA; 		// A conta se torna ativa, ppodendo receber lançamentos.
+	public ContaCor(String titular, float saldoAtual, int numConta, int senha, TipoCobranca tipoCobranca) {
+		this.estado = ContaCor.ATIVA;
 		this.titular = titular;
 		this.saldoAtual = saldoAtual;
 		this.numConta = numConta;
 		this.senha = senha;
-		this.ultLanc = 0; 					// A conta sem nenhum lançamento.
-		this.historico = new String[ContaCor.QTDMAXLANC]; 		// cria vetores ...
-		this.valorLanc = new float[ContaCor.QTDMAXLANC];		// ... com QTDMAXLANC elementos
+		this.ultLanc = 0;
+		this.historico = new String[ContaCor.QTDMAXLANC];
+		this.valorLanc = new float[ContaCor.QTDMAXLANC];
+		this.estrategiaDeCobranca = instanciaEstrategia(tipoCobranca);
+	}
+
+	private EstrategiaDeCobranca instanciaEstrategia(TipoCobranca tipoCobranca) {
+		switch (tipoCobranca) {
+			case PREMIUM:
+				return new CobrancaPacotePremium(senha);
+			case BASICO:
+				return new CobrancaPacoteBasico(senha);
+			case COBRANCA_POR_OPERACAO:
+				return new CobrancaPorOperacao(senha);
+		}
+        return null;
+    }
+
+	public float getTaxaOperacao(){
+		if (this.estrategiaDeCobranca != null) {
+			return this.estrategiaDeCobranca.getTaxa();
+		} else{
+			System.out.println("Nenhuma estratégia de cobrança definida.");
+			return 0.0F;
+		}
+
+	}
+
+	public boolean aplicarCobranca() {
+		if (this.estrategiaDeCobranca != null) {
+			return this.estrategiaDeCobranca.aplicarCobranca(this);
+		} else {
+			System.out.println("Nenhuma estratégia de cobrança definida.");
+			return false;
+		}
 	}
 
 	private boolean estaAtiva() {
@@ -69,10 +102,9 @@ public class ContaCor {
 	 * Realiza um débito genérico na conta corrente.
 	 * @param descricao Descrição da operação
 	 * @param valor Valor a ser debitado (deve ser positivo)
-	 * @param senhaCliente Senha do cliente para autorização
 	 * @return true se o débito for realizado com sucesso, false caso contrário
 	 */
-	public boolean debitarValor(String descricao, float valor, int senhaCliente) {
+	public boolean debitarValor(String descricao, float valor) {
 		gerenciarHistorico(descricao, -valor);
 		saldoAnterior = this.saldoAtual;
 		this.saldoAtual -= valor;
@@ -146,7 +178,7 @@ public class ContaCor {
 	 */
 	public boolean debitarSaque(float valor, int senhaCliente) {
 		if (!this.saqueValido(senhaCliente,valor)) { return false;}
-		boolean sucesso = debitarValor("Saque em dinheiro", valor, senhaCliente);
+		boolean sucesso = debitarValor("Saque em dinheiro", valor);
 		if (sucesso) {
 			System.out.println("Saque realizado com sucesso no valor de: " + valor);
 		}

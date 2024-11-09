@@ -105,8 +105,15 @@ public class ControladorCaixa {
 		ContaCor contaCorrenteOrigem = dbContas.buscarConta(contaOrigem);
 		ContaCor contaCorrenteDestino = dbContas.buscarConta(contaDestino);
 		if (this.transferenciaValida(contaCorrenteOrigem,senhaOrigem,contaCorrenteDestino,valor,saldoCaixa)){
-			boolean debitou = contaCorrenteOrigem.debitarValor("transferencia para a conta de numero :" + contaDestino,valor,senhaOrigem);
+			boolean taxaCobradaOrigem = contaCorrenteOrigem.aplicarCobranca();
+			if (!taxaCobradaOrigem) {return false;}
+			boolean debitou = contaCorrenteOrigem.debitarValor("transferencia para a conta de numero :" + contaDestino,valor);
 			if (!debitou) {return false;}
+			boolean taxaCobradaDestino = contaCorrenteDestino.aplicarCobranca();
+			if (!taxaCobradaDestino) {
+				contaCorrenteOrigem.creditarValor(contaOrigem,valor);
+				return false;
+			}
 			boolean creditou = contaCorrenteDestino.creditarValor(contaOrigem,valor);
 			if (creditou) {
 				System.out.println("transferencia para a conta de numero :" + contaDestino+ "no valor de "+valor+ "realizada!");
@@ -115,11 +122,10 @@ public class ControladorCaixa {
 			else {
 				System.out.println("Não foi possivel creditar na conta de destino");
 				contaCorrenteOrigem.creditarValor(contaOrigem,valor);
+				contaCorrenteOrigem.creditarValor(contaOrigem,contaCorrenteDestino.getTaxaOperacao());
+				return false;
 			}
-			return false;
 		}
-		else {
-			return false;
-		}
+		return false;
 	}
 }
